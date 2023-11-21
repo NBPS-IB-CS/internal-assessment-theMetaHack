@@ -8,20 +8,28 @@ def lambda_handler(event, context):
     source_bucket = event['Records'][0]['s3']['bucket']['name']
     source_key = event['Records'][0]['s3']['object']['key']
     filename = source_key
-        
+    s3 = boto3.client('s3')
+    
     destination_bucket ="invoicemanager-documents"
     
     print('source_bucket',source_bucket)
-    print('key',source_key)
+    print('source_key',source_key)
     
-    json = validate_file(filename)
+    json = validate_file(filename) 
     print(json)
     
-    destination_key ="invoicemanager-documents/"+ json['Year'] +'/'+json['Month']+'/'+ filename
+    destination_key = json['Year'] +'/'+json['Month']+'/'+ filename
+    print('destination_key',destination_key)
     
     #print(validate_file(filename))
-    
-    
+    # Copy the file
+    copy_source = {
+    'Bucket': source_bucket,
+    'Key': source_key
+    }
+    s3.copy_object(CopySource=copy_source, Bucket=destination_bucket, Key=destination_key)
+   
+    s3.delete_object(Bucket=source_bucket, Key=source_key) 
    
     # TODO implement
     return {
