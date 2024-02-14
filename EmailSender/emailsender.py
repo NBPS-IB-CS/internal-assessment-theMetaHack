@@ -10,16 +10,16 @@ ses_client = boto3.client('ses', region_name=AWS_REGION)
 
 def lambda_handler(event, context):
     
-    #source_bucket = event['Records'][0]['s3']['bucket']['name']
-    #source_key = event['Records'][0]['s3']['object']['key']
+    source_bucket = event['Records'][0]['s3']['bucket']['name']
+    source_key = event['Records'][0]['s3']['object']['key']
     #https://invoicemanager-landingzone.s3.amazonaws.com/202410_12341234_Joe.pdf.pdf
-    #url = source_bucket + '.s3.amazonaws.com/' + source_key 
-    #filename = source_key
+    url = source_bucket + '.s3.amazonaws.com/' + source_key 
+    filename = source_key
     #customNo = filename[3:6]
     #InvNo = filename[13:16]
     
     SENDER_EMAIL = 'contact2hriship@gmail.com'
-    RECIPIENT_EMAIL = 'RECIPIENTs email' #doesn't work if its not my own email
+    RECIPIENT_EMAIL =  'contact2hriship@gmail.com' 
     
     
     send_email(SENDER_EMAIL, RECIPIENT_EMAIL)
@@ -41,6 +41,15 @@ def send_email(SENDER_EMAIL, RECIPIENT_EMAIL):
 
     # Add the message body
     message.attach(MIMEText(body, 'plain'))
+    
+    #attach file
+    try:
+        s3_object = s3_client.get_object(Bucket='your_s3_bucket_name', Key=INVOICE_FILE_PATH)
+        attachment = MIMEApplication(s3_object['Body'].read(), Name='invoice.pdf')
+        attachment['Content-Disposition'] = f'attachment; filename="invoice.pdf"'
+        message.attach(attachment)
+    except Exception as e:
+        print(f"Error retrieving invoice file: {str(e)}")
 
     # Send the email using Amazon SES
     response = ses_client.send_raw_email(
@@ -56,6 +65,8 @@ def send_email(SENDER_EMAIL, RECIPIENT_EMAIL):
         'body': json.dumps('Email sent successfully!')
     }
 
+# Uncomment the line below if you want to test the Lambda function locally
+# send_email(None, None)
 
 
     #source_bucket = event['Records'][0]['s3']['bucket']['name']
