@@ -19,7 +19,7 @@ def lambda_handler(event, context):
     #InvNo = filename[13:16]
     
     SENDER_EMAIL = 'contact2hriship@gmail.com'
-    RECIPIENT_EMAIL =  'contact2hriship@gmail.com' 
+    RECIPIENT_EMAIL =  getCustomerEmail(customNo) 
     
     
     send_email(SENDER_EMAIL, RECIPIENT_EMAIL)
