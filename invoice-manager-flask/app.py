@@ -8,6 +8,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db = SQLAlchemy(app)
 app.secret_key = 'secret_key'
 
+bucket_name = 'invoicemanager-documents'
+
+AWS_REGION = 'us-east-1'
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
+
+# Create an S3 client
+s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY_ID,
+                  aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                  region_name=AWS_REGION)
 
 class Inv:
     year = '0000'
@@ -85,18 +95,7 @@ def dashboard():
 
 @app.route('/invoices')
 def invoices():
-    bucket_name = 'invoicemanager-documents'
 
-    bucket_name = 'invoicemanager-documents'
-
-    AWS_REGION = 'us-east-1'
-    AWS_ACCESS_KEY_ID = '[CENSORED]'
-    AWS_SECRET_ACCESS_KEY = '[CENSORED]'
-
-    # Create an S3 client
-    s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-                      region_name=AWS_REGION)
 
     # List objects in the bucket
     response = s3.list_objects_v2(Bucket=bucket_name)
@@ -129,6 +128,29 @@ def invoices():
 def logout():
     session.pop('email', None)
     return redirect('/login')
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['file']
+
+        # Check if the file is selected
+        if file:
+            # Initialize S3 client
+            #s3 = boto3.client('s3')
+
+            try:
+
+                # Upload file to S3 bucket :
+                s3.upload_fileobj(file, "invoicemanager-landingzone", file.filename)
+                return 'File uploaded successfully to AWS S3!'
+            except Exception as e:
+                print("An error occurred:", e)
+                return 'Upload failed.' + str(e)
+
+
+        else:
+            return 'No file selected. Upload failed.'
 
 
 if __name__ == '__main__':
