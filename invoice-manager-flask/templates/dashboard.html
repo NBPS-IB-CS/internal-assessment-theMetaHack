@@ -33,7 +33,11 @@
                 <h5>Upload Invoice</h5>
                 <p>Drag and drop your file here or click the button below. Be sure to have the correct filename form.</p>
                 <input type="file" id="file-input" style="display: none;">
-                <a href="/invoices" class="btn btn-dark">Upload</a>
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+
+                    <div style= padding: 20px;"><input id="file" name="file" type="file" /></div>
+                    <div style="margin-top: 20px;"><button class="btn btn-dark">Upload</button></div>
+                </form>
             </div>
         </div>
     </div>
