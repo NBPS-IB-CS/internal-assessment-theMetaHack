@@ -66,6 +66,7 @@
                     <th>Last Reminder</th>
                     <th>Filename</th>
                     <th>Customer ID</th>
+                    <th>Paid</th>
                     <th>Link</th>
                 </tr>
             </thead>
@@ -78,6 +79,7 @@
                         <td>{{ inv.lastReminder }}</td>
                         <td>{{ inv.filename }}</td>
                         <td>{{ inv.customerid }}</td>
+                        <td>{{ inv.paid }}</td>
                         <td><a href="https://invoicemanager-documents.s3.us-east-1.amazonaws.com/{{ inv.year }}/{{ inv.month }}/{{ inv.year }}{{ inv.month }}_{{ inv.customerid }}_{{ inv.filename }}" target="_blank">View Invoice</a></td>
                     </tr>
                 {% endfor %}
