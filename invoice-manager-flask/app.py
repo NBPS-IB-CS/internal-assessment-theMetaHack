@@ -25,6 +25,7 @@ class Inv:
     filename = ''
     customerid=''
     key = ''
+    paid = 'No'
 
 
 class User(db.Model):
@@ -106,6 +107,7 @@ def invoices():
         print("Files in bucket '{}' :".format(bucket_name))
         for obj in response['Contents']:
             print(obj['Key'])
+
             split_key = obj['Key'].split("_")
             year = split_key[0][0:4]
             month = split_key[0][5:7]
@@ -117,6 +119,13 @@ def invoices():
             new_inv.customerid =customerid
             new_inv.filename =filename
             new_inv.key =obj['Key']
+
+            tagging_response = s3.get_object_tagging(Bucket=bucket_name, Key=obj['Key'])
+            tags = tagging_response['TagSet']
+            if len(tags) > 0:
+                for tag in tags:
+                    new_inv.paid = tag['Value']
+
 
             inv_list.append(new_inv)
     else:
@@ -133,16 +142,15 @@ def logout():
 def upload_file():
     if request.method == 'POST':
         file = request.files['file']
-
+        is_paid = request.form["status"]
+        print(is_paid)
         # Check if the file is selected
         if file:
-            # Initialize S3 client
-            #s3 = boto3.client('s3')
 
             try:
 
                 # Upload file to S3 bucket :
-                s3.upload_fileobj(file, "invoicemanager-landingzone", file.filename)
+                s3.upload_fileobj(file, "invoicemanager-landingzone", file.filename, ExtraArgs={'Tagging': 'paid={}'.format(is_paid)})
                 return 'File uploaded successfully to AWS S3!'
             except Exception as e:
                 print("An error occurred:", e)
