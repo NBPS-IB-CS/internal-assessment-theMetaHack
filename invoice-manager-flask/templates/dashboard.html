@@ -36,6 +36,11 @@
                 <form action="/upload" method="POST" enctype="multipart/form-data">
 
                     <div style= padding: 20px;"><input id="file" name="file" type="file" /></div>
+                    <label for="status">Invoice Status:</label>
+                    <select name="status" id="status">
+                      <option value="Paid">Paid</option>
+                      <option value="Unpaid">Unpaid</option>
+                    </select>
                     <div style="margin-top: 20px;"><button class="btn btn-dark">Upload</button></div>
                 </form>
             </div>
