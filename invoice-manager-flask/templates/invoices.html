@@ -75,12 +75,161 @@
                     <tr>
                         <td>{{ inv.year }}</td>
                         <td>{{ inv.month }}</td>
-                        <td>{{ inv.amount }}</td>
-                        <td>{{ inv.lastReminder }}</td>
+                        <td>{{ inv.amount|round(2)}}</td>
+                        <td><p>
+                            {% if inv.lastReminder %}
+                                Last Reminder was at {{ inv.lastReminder }}
+                            {% endif %}
+                            <div ><a href="/reminder?email={{ inv.customeremail }}&link={{ inv.year }}/{{ inv.month }}/{{ inv.filename }}" class="btn btn-dark">Send Reminder</a></div></p></td>
                         <td>{{ inv.filename }}</td>
                         <td>{{ inv.customerid }}</td>
                         <td>{{ inv.paid }}</td>
-                        <td><a href="https://invoicemanager-documents.s3.us-east-1.amazonaws.com/{{ inv.year }}/{{ inv.month }}/{{ inv.year }}{{ inv.month }}_{{ inv.customerid }}_{{ inv.filename }}" target="_blank">View Invoice</a></td>
+                        <td><a href="https://invoicemanager-documents.s3.us-east-1.amazonaws.com/{{ inv.year }}/{{ inv.month }}/{{ inv.filename }}" target="_blank">View Invoice</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('filter-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var invoiceDateFilter = document.getElementById('invoice-date').value;
+            var amountFilter = document.getElementById('amount-filter').value;
+            var lastReminderFilter = document.getElementById('last-reminder').value;
+            var customerIdFilter = document.getElementById('customer-id').value;
+
+            // Filter logic
+            var filteredInvoices = [];
+            {% for inv in inv_list %}
+                var inv = {
+                    year: "{{ inv.year }}",
+                    month: "{{ inv.month }}",
+                    amount: "{{ inv.amount }}",
+                    lastReminder: "{{ inv.lastReminder }}",
+                    filename: "{{ inv.filename }}",
+                    customerid: "{{ inv.customerid }}"
+                };
+                //filtering conditions
+                if (
+                    (!invoiceDateFilter || (inv.year + '-' + inv.month === invoiceDateFilter)) &&
+                    (!amountFilter || parseFloat(amountFilter) === parseFloat(inv.amount)) &&
+                    (!lastReminderFilter || (inv.year + '-' + inv.month === lastReminderFilter)) &&
+                    (!customerIdFilter || inv.customerid.toLowerCase().includes(customerIdFilter.toLowerCase()))
+                ) {
+                    filteredInvoices.push(inv);
+                }
+            {% endfor %}
+
+            // Update the table
+            var tableBody = document.getElementById('invoices-table').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            filteredInvoices.forEach(function(inv) {
+                var row = tableBody.insertRow();
+                row.insertCell(0).textContent = inv.year;
+                row.insertCell(1).textContent = inv.month;
+                row.insertCell(2).textContent = inv.amount;
+                row.insertCell(3).textContent = inv.lastReminder;
+                row.insertCell(4).textContent = inv.filename;
+                row.insertCell(5).textContent = inv.customerid;
+                var actionCell = row.insertCell(6);
+                var actionLink = document.createElement('a');
+                actionLink.href = "https://invoicemanager-documents.s3.amazonaws.com/" + inv.year + "/" + inv.month + "/" + inv.year + inv.month + "_" + inv.customerid + "_" + inv.filename;
+                actionLink.target = "_blank";
+                actionLink.textContent = "View Invoice";
+                actionCell.appendChild(actionLink);
+            });
+        });
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            margin: 15px;
+            background-color: #d0d0d0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #000000;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Invoices</h1>
+    <a href="/dashboard" class="btn btn-primary mt-3" margin-bottom="30px">Back To Dashboard</a>
+    <!-- Filter section -->
+    <div id="filter-section" >
+        <h2 >Filter by</h2>
+        <form id="filter-form">
+            <label for="invoice-date">Invoice Date:</label>
+            <input type="month" name="invoice-date" id="invoice-date">
+
+            <label for="amount-filter">Amount:</label>
+            <input type="number" name="amount-filter" id="amount-filter">
+
+            <label for="last-reminder">Last Reminder:</label>
+            <input type="month" name="last-reminder" id="last-reminder">
+
+            <label for="customer-id">Customer ID:</label>
+            <input type="text" name="customer-id" id="customer-id">
+
+            <button type="submit">Apply Filters</button>
+        </form>
+    </div>
+
+    <!-- Invoices section -->
+    <div id="invoices-section">
+        <h2>Invoices</h2>
+        <table id="invoices-table">
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Month</th>
+                    <th>Amount</th>
+                    <th>Last Reminder</th>
+                    <th>Filename</th>
+                    <th>Customer ID</th>
+                    <th>Paid</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in inv_list %}
+                    <tr>
+                        <td>{{ inv.year }}</td>
+                        <td>{{ inv.month }}</td>
+                        <td>{{ inv.amount|round(2)}}</td>
+                        <td><p>
+                            {% if inv.lastReminder %}
+                                Last Reminder was at {{ inv.lastReminder }}
+                            {% endif %}
+                            <div ><a href="/reminder?email={{ inv.customeremail }}&link={{ inv.year }}/{{ inv.month }}/{{ inv.filename }}" class="btn btn-dark">Send Reminder</a></div></p></td>
+                        <td>{{ inv.filename }}</td>
+                        <td>{{ inv.customerid }}</td>
+                        <td>{{ inv.paid }}</td>
+                        <td><a href="https://invoicemanager-documents.s3.us-east-1.amazonaws.com/{{ inv.year }}/{{ inv.month }}/{{ inv.filename }}" target="_blank">View Invoice</a></td>
                     </tr>
                 {% endfor %}
             </tbody>
