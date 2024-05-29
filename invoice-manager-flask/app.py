@@ -17,8 +17,8 @@ app.secret_key = 'secret_key'
 bucket_name = 'invoicemanager-documents'
 
 AWS_REGION = 'us-east-1'
-AWS_ACCESS_KEY_ID = ''
-AWS_SECRET_ACCESS_KEY = ''
+AWS_ACCESS_KEY_ID = 'REDACTED'
+AWS_SECRET_ACCESS_KEY = 'REDACTED'
 
 # Create an S3 client
 s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY_ID,
@@ -102,7 +102,8 @@ def login():
 def dashboard():
     if session['email']:
         user = User.query.filter_by(email=session['email']).first()
-        return render_template('dashboard.html', user=user)
+        inv_list = Invoice.query.order_by(desc(Invoice.lastReminder), desc(Invoice.createdon)).limit(5).all()
+        return render_template('dashboard.html', user=user, inv_list=inv_list)
 
     return redirect('/login')
 
@@ -116,43 +117,10 @@ def invoices():
 
     if not inv_list:
         print("No files found in bucket ")
-    else:
-        return render_template('invoices.html', inv_list=inv_list)
-
-    # List objects in the bucket
-    response = s3.list_objects_v2(Bucket=bucket_name)
-    inv_list = []
-
-    # Check if there are any objects in the bucket
-    if 'Contents' in response:
-        print("Files in bucket '{}' :".format(bucket_name))
-        for obj in response['Contents']:
-            print(obj['Key'])
-
-            split_key = obj['Key'].split("_")
-            year = split_key[0][0:4]
-            month = split_key[0][5:7]
-            customerid =split_key[1]
-            filename =split_key[2]
-            new_inv = Invoice()
-            new_inv.year =year
-            new_inv.month =month
-            new_inv.customerid =customerid
-            new_inv.filename =filename
-            new_inv.key =obj['Key']
-
-            tagging_response = s3.get_object_tagging(Bucket=bucket_name, Key=obj['Key'])
-            tags = tagging_response['TagSet']
-            if len(tags) > 0:
-                for tag in tags:
-                    new_inv.paid = tag['Value']
-
-
-            inv_list.append(new_inv)
-    else:
-        print("No files found in bucket '{}'.".format(bucket_name))
 
     return render_template('invoices.html', inv_list=inv_list)
+
+
 
 @app.route('/logout')
 def logout():
