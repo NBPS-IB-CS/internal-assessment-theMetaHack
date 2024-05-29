@@ -5,6 +5,7 @@ import boto3
 
 def lambda_handler(event, context):
    
+    print(event)
     source_bucket = event['Records'][0]['s3']['bucket']['name']
     source_key = event['Records'][0]['s3']['object']['key']
     filename = source_key
@@ -29,7 +30,7 @@ def lambda_handler(event, context):
     }
     s3.copy_object(CopySource=copy_source, Bucket=destination_bucket, Key=destination_key)
    
-    s3.delete_object(Bucket=source_bucket, Key=source_key) 
+    #s3.delete_object(Bucket=source_bucket, Key=source_key) 
    
     # TODO implement
     return {
@@ -39,7 +40,7 @@ def lambda_handler(event, context):
 
 
 def validate_file(filename):
-    pattern = r'(\d{4})(\d{2})_(\d+)_([A-Za-z]+)\.pdf'
+    pattern = r'(\d{4})(\d{2})_(\d+)_([A-Za-z0-9]+)\.pdf'
     match = re.match(pattern, filename)
     
     if match:
@@ -59,7 +60,7 @@ def validate_file(filename):
             "Month": 00,
             "Year": 00,
             "ID": 0,
-            "Name": name,
+            "Name": filename,
             "message":"wrong file name"
         }
         
