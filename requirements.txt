@@ -2,3 +2,10 @@ flask
 flask_sqlalchemy
 bcrypt
 boto3
+decimal
+datetime
+json
+sqlalchemy
+re
+email.mime
+os
